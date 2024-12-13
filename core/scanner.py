@@ -20,10 +20,6 @@ async def validate_target(target: str) -> bool:
 async def scan_port(target: str, port: int) -> Dict:
     """Scan a single port."""
     try:
-        # Use a shorter timeout for faster scans
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(0.5)
-        
         # Common ports and their services
         common_ports = {
             20: "ftp-data", 21: "ftp", 22: "ssh", 23: "telnet",
@@ -32,92 +28,78 @@ async def scan_port(target: str, port: int) -> Dict:
             587: "submission", 993: "imaps", 995: "pop3s", 1433: "mssql",
             1521: "oracle", 2049: "nfs", 3306: "mysql", 3389: "rdp",
             5432: "postgresql", 5900: "vnc", 6379: "redis", 8080: "http-alt", 
-            8443: "https-alt", 9200: "elasticsearch", 27017: "mongodb",
-            6000: "x11", 11211: "memcached", 27015: "steam", 
-            5601: "kibana", 9090: "prometheus", 9100: "node-exporter"
+            8443: "https-alt", 9200: "elasticsearch", 27017: "mongodb"
         }
-        
-        # Advanced service detection functions
-        async def detect_ssh_version(target: str, port: int) -> str:
-            try:
-                reader, writer = await asyncio.open_connection(target, port)
-                banner = await reader.read(50)
-                writer.close()
-                await writer.wait_closed()
-                return banner.decode().strip()
-            except:
-                return ""
 
-        async def detect_ftp_banner(target: str, port: int) -> str:
+        def get_service_banner(sock: socket.socket, service: str) -> str:
+            """Get service banner using basic protocol commands."""
             try:
-                reader, writer = await asyncio.open_connection(target, port)
-                banner = await reader.read(100)
-                writer.close()
-                await writer.wait_closed()
-                return banner.decode().strip()
-            except:
-                return ""
+                if service == "http":
+                    sock.send(b"HEAD / HTTP/1.1\r\nHost: "+target.encode()+b"\r\n\r\n")
+                    response = sock.recv(1024).decode('utf-8', errors='ignore')
+                    for line in response.split('\n'):
+                        if line.startswith('Server:'):
+                            return line.split(':', 1)[1].strip()
+                elif service == "ssh":
+                    response = sock.recv(1024).decode('utf-8', errors='ignore')
+                    if response.startswith('SSH-'):
+                        return response.strip()
+                elif service == "ftp":
+                    response = sock.recv(1024).decode('utf-8', errors='ignore')
+                    return response.strip()
+            except Exception as e:
+                logging.debug(f"Banner detection error for {service} on port {port}: {str(e)}")
+            return ""
+
+        # Initial connection check
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.settimeout(1.0)  # Increased timeout for better reliability
         
         result = sock.connect_ex((target, port))
-        sock.close()
         
         service = "unknown"
         service_info = ""
         
         if result == 0:
             try:
+                # Get default service name
                 service = socket.getservbyport(port)
             except (OSError, socket.error):
                 service = common_ports.get(port, "unknown")
-                
-            # Enhanced service detection
-            if service == "ssh":
-                banner = await detect_ssh_version(target, port)
-                if banner:
-                    service_info = f"({banner})"
-            elif service == "ftp":
-                banner = await detect_ftp_banner(target, port)
-                if banner:
-                    service_info = f"({banner})"
             
-            if service_info:
-                service = f"{service} {service_info}"
+            # Try to get service banner
+            try:
+                # For services that need immediate banner reading
+                if service in ["ssh", "ftp"]:
+                    banner = get_service_banner(sock, service)
+                    if banner:
+                        service_info = f"({banner})"
                 
-            # Enhanced service detection
-            if service in ["http", "https", "http-alt", "https-alt"]:
-                try:
-                    protocol = "https" if service in ["https", "https-alt"] else "http"
-                    with socket.create_connection((target, port), timeout=1) as s:
-                        # Try multiple request methods for better fingerprinting
-                        methods = ["HEAD", "GET", "OPTIONS"]
-                        headers = []
-                        for method in methods:
-                            try:
-                                s.send(f"{method} / HTTP/1.1\r\nHost: {target}\r\nUser-Agent: SecurityScanner/1.0\r\n\r\n".encode())
-                                response = s.recv(1024).decode()
-                                headers.extend([line.strip() for line in response.split("\r\n") if line.strip()])
-                            except:
-                                continue
-                        
-                        # Extract useful information
-                        server_info = []
-                        for header in headers:
-                            if header.startswith(("Server:", "X-Powered-By:", "X-AspNet-Version:")):
-                                server_info.append(header.split(":", 1)[1].strip())
-                        
-                        if server_info:
-                            service = f"{service} ({', '.join(server_info)})"
-                except Exception as e:
-                    logging.debug(f"HTTP detection error on port {port}: {str(e)}")
-                    pass
+                # For HTTP-like services
+                elif service in ["http", "https", "http-alt", "https-alt"]:
+                    banner = get_service_banner(sock, "http")
+                    if banner:
+                        service_info = f"({banner})"
+                
+                if service_info:
+                    service = f"{service} {service_info}"
+                    
+            except Exception as e:
+                logging.debug(f"Service detection error on port {port}: {str(e)}")
         
+        sock.close()
         return {
             "port": port,
             "state": "open" if result == 0 else "closed",
             "service": service
         }
+            
     except Exception as e:
         logging.error(f"Error scanning port {port}: {str(e)}")
+        try:
+            sock.close()
+        except:
+            pass
         return {"port": port, "state": "error", "service": "unknown"}
 
 async def scan_target(target: str, port_range: str = "1-1024") -> List[Dict]:
