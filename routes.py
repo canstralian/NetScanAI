@@ -12,7 +12,7 @@ def index():
     return render_template('index.html')
 
 @app.route('/scan', methods=['POST'])
-async def scan():
+def scan():
     try:
         data = request.get_json()
         target = data.get('target')
@@ -27,7 +27,10 @@ async def scan():
             return jsonify({'results': cached_results, 'cached': True})
 
         # Run new scan
-        results = await scan_target(target, port_range)
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        results = loop.run_until_complete(scan_target(target, port_range))
+        loop.close()
         
         # Cache the results
         cache.store_results(target, results)

@@ -12,4 +12,5 @@ dependencies = [
     "flask-sqlalchemy",
     "psycopg2-binary",
     "email-validator",
+    "flask-cors>=5.0.0",
 ]

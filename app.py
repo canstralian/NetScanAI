@@ -3,10 +3,12 @@ import logging
 from flask import Flask
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
+from flask_cors import CORS
 
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
+CORS(app)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev_key_123")
 
 # Setup rate limiting
