@@ -25,10 +25,29 @@ async def scan_port(target: str, port: int) -> Dict:
         result = sock.connect_ex((target, port))
         sock.close()
         
+        service = "unknown"
+        if result == 0:
+            try:
+                service = socket.getservbyport(port)
+            except (OSError, socket.error):
+                # Common ports and their services
+                common_ports = {
+                    80: "http",
+                    443: "https",
+                    22: "ssh",
+                    21: "ftp",
+                    25: "smtp",
+                    110: "pop3",
+                    143: "imap",
+                    3306: "mysql",
+                    5432: "postgresql"
+                }
+                service = common_ports.get(port, "unknown")
+        
         return {
             "port": port,
             "state": "open" if result == 0 else "closed",
-            "service": socket.getservbyport(port) if result == 0 else "unknown"
+            "service": service
         }
     except Exception as e:
         logging.error(f"Error scanning port {port}: {str(e)}")
