@@ -4,18 +4,40 @@ import ipaddress
 from typing import List, Dict
 import logging
 
-async def validate_target(target: str) -> bool:
-    """Validate if the target is a valid IP address or hostname."""
+async def validate_target(target: str) -> tuple[bool, str]:
+    """Validate if the target is a valid IP address or hostname.
+    Returns a tuple of (is_valid, error_message)"""
+    # Remove any protocol prefix
+    if target.startswith(('http://', 'https://')):
+        target = target.split('://', 1)[1]
+    
+    # Remove path and query parameters if present
+    target = target.split('/', 1)[0]
+    
     try:
         # Try parsing as IP address
         ipaddress.ip_address(target)
-        return True
+        return True, ""
     except ValueError:
         # Check if it's a valid hostname
         if len(target) > 255:
-            return False
-        allowed = set("-." + "abcdefghijklmnopqrstuvwxyz0123456789")
-        return all(c.lower() in allowed for c in target)
+            return False, "Hostname too long (max 255 characters)"
+        
+        # Split hostname into labels
+        labels = target.split('.')
+        
+        # Basic hostname validation rules
+        for label in labels:
+            if not label:
+                return False, "Invalid hostname format (empty label)"
+            if len(label) > 63:
+                return False, "Invalid hostname (label too long)"
+            if not all(c.isalnum() or c == '-' for c in label):
+                return False, "Invalid hostname (invalid characters)"
+            if label.startswith('-') or label.endswith('-'):
+                return False, "Invalid hostname (hyphen at start/end)"
+        
+        return True, ""
 
 from .ssl_checker import check_ssl_certificate
 
@@ -116,8 +138,9 @@ from .ai_analysis import AISecurityAnalyzer
 
 async def scan_target(target: str, port_range: str = "1-1024") -> Dict:
     """Scan a target for open ports and perform AI-powered analysis."""
-    if not await validate_target(target):
-        raise ValueError("Invalid target specified")
+    is_valid, error_message = await validate_target(target)
+    if not is_valid:
+        raise ValueError(f"Invalid target: {error_message}")
     
     try:
         start_port, end_port = map(int, port_range.split('-'))
