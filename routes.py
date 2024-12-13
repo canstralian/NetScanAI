@@ -36,7 +36,8 @@ def scan():
         cache.store_results(target, results)
         
         return jsonify({
-            'results': results,
+            'results': results.get('scan_results', []),
+            'ai_analysis': results.get('ai_analysis', {}),
             'cached': False
         })
 

@@ -112,8 +112,10 @@ async def scan_port(target: str, port: int) -> Dict:
             pass
         return {"port": port, "state": "error", "service": "unknown"}
 
-async def scan_target(target: str, port_range: str = "1-1024") -> List[Dict]:
-    """Scan a target for open ports."""
+from .ai_analysis import AISecurityAnalyzer
+
+async def scan_target(target: str, port_range: str = "1-1024") -> Dict:
+    """Scan a target for open ports and perform AI-powered analysis."""
     if not await validate_target(target):
         raise ValueError("Invalid target specified")
     
@@ -128,6 +130,14 @@ async def scan_target(target: str, port_range: str = "1-1024") -> List[Dict]:
     for port in range(start_port, end_port + 1):
         tasks.append(scan_port(target, port))
     
-    results = await asyncio.gather(*tasks)
-    # Return all results, sorted by port number
-    return sorted([r for r in results], key=lambda x: x["port"])
+    scan_results = await asyncio.gather(*tasks)
+    scan_results = sorted([r for r in scan_results], key=lambda x: x["port"])
+    
+    # Perform AI analysis
+    analyzer = AISecurityAnalyzer()
+    ai_analysis = await analyzer.analyze_scan_results(scan_results)
+    
+    return {
+        "scan_results": scan_results,
+        "ai_analysis": ai_analysis
+    }

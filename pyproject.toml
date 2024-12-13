@@ -13,4 +13,8 @@ dependencies = [
     "psycopg2-binary",
     "email-validator",
     "flask-cors>=5.0.0",
+    "mistralai>=1.2.5",
+    "requests>=2.32.3",
+    "anthropic>=0.40.0",
+    "huggingface-hub>=0.26.5",
 ]

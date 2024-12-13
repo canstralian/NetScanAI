@@ -9,6 +9,30 @@
                 <small class="text-muted">{{ timestamp }}</small>
             </div>
             <div class="card-body">
+                {% if ai_analysis %}
+                <div class="mb-4">
+                    <h5>AI Security Analysis</h5>
+                    <div class="alert alert-info">
+                        <h6>Security Summary</h6>
+                        <p>{{ ai_analysis.summary }}</p>
+                        
+                        <h6 class="mt-3">Risk Level</h6>
+                        <span class="badge bg-{{ 'danger' if ai_analysis.risk_level == 'High' else 'warning' if ai_analysis.risk_level == 'Medium' else 'success' }}">
+                            {{ ai_analysis.risk_level }}
+                        </span>
+                        
+                        {% if ai_analysis.vulnerabilities %}
+                        <h6 class="mt-3">Detected Vulnerabilities</h6>
+                        <ul class="list-unstyled">
+                            {% for vuln in ai_analysis.vulnerabilities %}
+                            <li>• {{ vuln.description }}</li>
+                            {% endfor %}
+                        </ul>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+                
                 <table class="table">
                     <thead>
                         <tr>
