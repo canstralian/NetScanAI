@@ -70,4 +70,5 @@ async def scan_target(target: str, port_range: str = "1-1024") -> List[Dict]:
         tasks.append(scan_port(target, port))
     
     results = await asyncio.gather(*tasks)
-    return [r for r in results if r["state"] == "open"]
+    # Return all results, sorted by port number
+    return sorted([r for r in results], key=lambda x: x["port"])

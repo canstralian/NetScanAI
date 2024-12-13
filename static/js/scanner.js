@@ -35,6 +35,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Display results
                 resultsCard.classList.remove('d-none');
                 displayResults(data);
+                
+                // Show success message if scan completed
+                const alertHtml = `
+                    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+                        Scan completed successfully!
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                `;
+                scanResults.insertAdjacentHTML('beforebegin', alertHtml);
             } else {
                 showError(data.error || 'An error occurred during the scan');
             }
