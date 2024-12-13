@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0">Security Scanner</h4>
+            </div>
+            <div class="card-body">
+                <form id="scanForm" method="POST" action="/scan">
+                    <div class="mb-3">
+                        <label for="target" class="form-label">Target IP/Hostname</label>
+                        <input type="text" class="form-control" id="target" name="target" 
+                               required pattern="^[a-zA-Z0-9.-]+$">
+                        <div class="form-text">Enter a valid IP address or hostname</div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="port_range" class="form-label">Port Range</label>
+                        <input type="text" class="form-control" id="port_range" name="port_range" 
+                               value="1-1024" pattern="^\d+-\d+$">
+                        <div class="form-text">Format: start-end (e.g., 1-1024)</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" id="scanButton">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        Start Scan
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center mt-4">
+    <div class="col-md-8">
+        <div class="card d-none" id="resultsCard">
+            <div class="card-header">
+                <h4 class="mb-0">Scan Results</h4>
+            </div>
+            <div class="card-body">
+                <div id="scanResults"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

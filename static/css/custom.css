@@ -1,0 +1,28 @@
+/* Custom styles to complement Bootstrap dark theme */
+.card {
+    border-color: var(--bs-gray-700);
+}
+
+.card-header {
+    background-color: var(--bs-gray-800);
+    border-bottom-color: var(--bs-gray-700);
+}
+
+.table {
+    margin-bottom: 0;
+}
+
+.spinner-border {
+    margin-right: 0.5rem;
+}
+
+/* Custom loading animation */
+@keyframes scan-pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.5; }
+    100% { opacity: 1; }
+}
+
+.scanning {
+    animation: scan-pulse 1.5s infinite;
+}

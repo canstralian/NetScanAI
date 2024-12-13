@@ -1,0 +1,54 @@
+from flask import render_template, request, jsonify, flash
+from app import app
+from core.scanner import scan_target
+from core.cache import ScanCache
+import asyncio
+import logging
+
+cache = ScanCache()
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/scan', methods=['POST'])
+async def scan():
+    try:
+        data = request.get_json()
+        target = data.get('target')
+        port_range = data.get('port_range', '1-1024')
+
+        if not target:
+            return jsonify({'error': 'Target is required'}), 400
+
+        # Check cache first
+        cached_results = cache.get_results(target)
+        if cached_results:
+            return jsonify({'results': cached_results, 'cached': True})
+
+        # Run new scan
+        results = await scan_target(target, port_range)
+        
+        # Cache the results
+        cache.store_results(target, results)
+        
+        return jsonify({
+            'results': results,
+            'cached': False
+        })
+
+    except ValueError as e:
+        logging.error(f"Validation error: {str(e)}")
+        return jsonify({'error': str(e)}), 400
+    except Exception as e:
+        logging.error(f"Scan error: {str(e)}")
+        return jsonify({'error': 'An error occurred during the scan'}), 500
+
+@app.route('/results/<target>')
+def view_results(target):
+    results = cache.get_results(target)
+    if not results:
+        flash('No results found for this target', 'warning')
+        return render_template('results.html', target=target, results=[])
+    
+    return render_template('results.html', target=target, results=results)
