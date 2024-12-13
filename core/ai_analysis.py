@@ -18,22 +18,33 @@ class AISecurityAnalyzer:
         
     async def analyze_scan_results(self, scan_results: List[Dict]) -> Dict:
         """Analyze scan results using multiple AI models."""
+        logging.info("Starting AI analysis of scan results")
+        
+        # Get Mistral analysis
         try:
+            logging.debug("Requesting Mistral analysis...")
             security_summary = await self._get_mistral_analysis(scan_results)
+            logging.info("Mistral analysis completed successfully")
         except Exception as e:
-            logging.error(f"Mistral analysis failed: {str(e)}")
+            logging.error(f"Mistral analysis failed: {str(e)}", exc_info=True)
             security_summary = "AI analysis currently unavailable"
 
+        # Get CodePal assessment
         try:
+            logging.debug("Requesting CodePal assessment...")
             vulnerability_assessment = await self._get_codepal_assessment(scan_results)
+            logging.info("CodePal assessment completed successfully")
         except Exception as e:
-            logging.error(f"CodePal assessment failed: {str(e)}")
+            logging.error(f"CodePal assessment failed: {str(e)}", exc_info=True)
             vulnerability_assessment = []
 
+        # Get HuggingFace classification
         try:
+            logging.debug("Requesting HuggingFace classification...")
             risk_classification = await self._get_huggingface_classification(scan_results)
+            logging.info("HuggingFace classification completed successfully")
         except Exception as e:
-            logging.error(f"HuggingFace classification failed: {str(e)}")
+            logging.error(f"HuggingFace classification failed: {str(e)}", exc_info=True)
             risk_classification = "Unknown"
 
         return {

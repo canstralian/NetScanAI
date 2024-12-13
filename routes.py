@@ -35,11 +35,16 @@ def scan():
         # Cache the results
         cache.store_results(target, results)
         
-        return jsonify({
+        # Log the AI analysis results for debugging
+        logging.debug(f"AI Analysis results: {results.get('ai_analysis', {})}")
+        
+        response_data = {
             'results': results.get('scan_results', []),
             'ai_analysis': results.get('ai_analysis', {}),
             'cached': False
-        })
+        }
+        logging.info("Scan completed successfully with AI analysis")
+        return jsonify(response_data)
 
     except ValueError as e:
         logging.error(f"Validation error: {str(e)}")
