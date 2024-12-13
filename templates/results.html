@@ -26,7 +26,20 @@
                                     {{ result.state }}
                                 </span>
                             </td>
-                            <td>{{ result.service }}</td>
+                            <td>
+                                {{ result.service }}
+                                {% if result.security_info and result.security_info.ssl %}
+                                    <button class="btn btn-sm btn-info ms-2" 
+                                            data-bs-toggle="tooltip" 
+                                            data-bs-html="true"
+                                            title="SSL Info:<br>
+                                                   Issuer: {{ result.security_info.ssl.issuer }}<br>
+                                                   Valid until: {{ result.security_info.ssl.valid_until }}<br>
+                                                   Cipher: {{ result.security_info.ssl.cipher }}">
+                                        <i data-feather="lock"></i>
+                                    </button>
+                                {% endif %}
+                            </td>
                         </tr>
                         {% endfor %}
                     </tbody>

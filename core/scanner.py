@@ -17,8 +17,10 @@ async def validate_target(target: str) -> bool:
         allowed = set("-." + "abcdefghijklmnopqrstuvwxyz0123456789")
         return all(c.lower() in allowed for c in target)
 
+from .ssl_checker import check_ssl_certificate
+
 async def scan_port(target: str, port: int) -> Dict:
-    """Scan a single port."""
+    """Scan a single port and gather additional security information."""
     try:
         # Common ports and their services
         common_ports = {
@@ -88,10 +90,18 @@ async def scan_port(target: str, port: int) -> Dict:
                 logging.debug(f"Service detection error on port {port}: {str(e)}")
         
         sock.close()
+        # Gather additional security information for relevant services
+        security_info = {}
+        if result == 0 and service in ['https', 'https-alt']:
+            ssl_info = check_ssl_certificate(target, port)
+            if ssl_info:
+                security_info['ssl'] = ssl_info
+
         return {
             "port": port,
             "state": "open" if result == 0 else "closed",
-            "service": service
+            "service": service,
+            "security_info": security_info
         }
             
     except Exception as e:
