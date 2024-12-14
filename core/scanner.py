@@ -7,37 +7,41 @@ import logging
 async def validate_target(target: str) -> tuple[bool, str]:
     """Validate if the target is a valid IP address or hostname.
     Returns a tuple of (is_valid, error_message)"""
-    # Remove any protocol prefix
-    if target.startswith(('http://', 'https://')):
-        target = target.split('://', 1)[1]
-    
-    # Remove path and query parameters if present
-    target = target.split('/', 1)[0]
-    
     try:
-        # Try parsing as IP address
-        ipaddress.ip_address(target)
-        return True, ""
-    except ValueError:
-        # Check if it's a valid hostname
+        # Clean the target string
+        target = target.strip().lower()
+        
+        # Remove protocol if present
+        if target.startswith(('http://', 'https://')):
+            target = target.split('://', 1)[1]
+        
+        # Remove path, query parameters, and port if present
+        target = target.split('/')[0].split(':')[0]
+        
+        # Try parsing as IP address first
+        try:
+            ipaddress.ip_address(target)
+            return True, ""
+        except ValueError:
+            pass
+            
+        # Basic domain validation
         if len(target) > 255:
-            return False, "Hostname too long (max 255 characters)"
-        
-        # Split hostname into labels
-        labels = target.split('.')
-        
-        # Basic hostname validation rules
-        for label in labels:
-            if not label:
-                return False, "Invalid hostname format (empty label)"
-            if len(label) > 63:
-                return False, "Invalid hostname (label too long)"
-            if not all(c.isalnum() or c == '-' for c in label):
-                return False, "Invalid hostname (invalid characters)"
-            if label.startswith('-') or label.endswith('-'):
-                return False, "Invalid hostname (hyphen at start/end)"
-        
+            return False, "Domain name too long"
+            
+        if not target or '.' not in target:
+            return False, "Invalid domain name format"
+            
+        # Check for valid characters
+        allowed_chars = set('abcdefghijklmnopqrstuvwxyz0123456789.-')
+        if not all(c in allowed_chars for c in target):
+            return False, "Domain contains invalid characters"
+            
         return True, ""
+            
+    except Exception as e:
+        logging.error(f"Target validation error: {str(e)}")
+        return False, "Invalid target format"
 
 from .ssl_checker import check_ssl_certificate
 
