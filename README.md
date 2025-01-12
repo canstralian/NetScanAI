@@ -1,65 +1,64 @@
-# NetScanAI
+NetScanAI
 
-## Overview
+Overview
 
 NetScanAI is an advanced network scanning tool powered by artificial intelligence, designed to automate the detection and analysis of network vulnerabilities.
 
-## Features
+Features
+   •   🔍 Automated Scanning: Performs comprehensive network scans to identify potential security threats.
+   •   🤖 AI-Powered Analysis: Utilizes machine learning algorithms to assess and prioritize vulnerabilities.
+   •   📊 User-Friendly Interface: Offers an intuitive dashboard for easy navigation and reporting.
 
-- **Automated Scanning**: Performs comprehensive network scans to identify potential security threats.
-- **AI-Powered Analysis**: Utilizes machine learning algorithms to assess and prioritize vulnerabilities.
-- **User-Friendly Interface**: Offers an intuitive dashboard for easy navigation and reporting.
+Installation
 
-## Installation
+Prerequisites
+   •   Python: 3.8 or higher
+   •   pip: Ensure you have the latest version of pip installed
 
-### Prerequisites
+Steps
+	1.	Clone the Repository:
 
-- Python 3.8 or higher
-- pip package manager
+git clone https://github.com/Canstralian/NetScanAI.git
 
-### Steps
 
-1. **Clone the Repository**:
+	2.	Navigate to the Project Directory:
 
-   ```bash
-   git clone https://github.com/yourusername/NetScanAI.git
-   ```
+cd NetScanAI
 
-2. **Navigate to the Project Directory**:
 
-   ```bash
-   cd NetScanAI
-   ```
+	3.	Install Dependencies:
 
-3. **Install Dependencies**:
+pip install -r requirements.txt
 
-   ```bash
-   pip install -r requirements.txt
-   ```
 
-## Usage
+
+Usage
 
 To start the network scan, run:
 
-```bash
 python net_scan.py
-```
 
 For a list of available commands and options, use:
 
-```bash
 python net_scan.py --help
-```
 
-## Contributing
+Contributing
 
-Contributions are welcome! Please fork the repository, create a new branch, and submit a pull request with your proposed changes.
+We welcome contributions to improve NetScanAI!
+To contribute:
+	1.	Fork the Repository
+	2.	Create a New Branch for your feature or fix:
 
-## License
+git checkout -b feature-name
 
-Distributed under the MIT License. See  for more information.
 
-## Acknowledgments
+	3.	Submit a Pull Request to the main branch with a detailed description of your changes.
 
-- Inspired by [Awesome README Template](https://github.com/Louis3797/awesome-readme-template)
-- Utilized [Model Card Template](https://huggingface.co/templates/model-card-example) for documentation
+License
+
+Distributed under the MIT License.
+See LICENSE for more details.
+
+Acknowledgments
+   •   Inspired by Awesome README Template.
+   •   Documentation references the Model Card Template.
